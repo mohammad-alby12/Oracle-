@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>ORACLE — Cek Apapun Online</title>
+<meta name="theme-color" content="#0a0d14">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="/css/style.css">
+<script>
+    // Force hide loader setelah 3 detik, apapun yang terjadi
+    window.forceHideLoader = true;
+    setTimeout(function(){
+      var l = document.getElementById('loader');
+      if (l) { l.classList.add('hide'); l.style.display = 'none'; }
+    }, 3000);
+    // Fallback kedua: 6 detik
+    setTimeout(function(){
+      var l = document.getElementById('loader');
+      if (l) l.style.display = 'none';
+    }, 6000);
+  </script>
+
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-fast" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2 12h20M12 2a15 15 0 010 20M12 2a15 15 0 000 20" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-brain" viewBox="0 0 24 24"><path d="M9.5 2A2.5 2.5 0 007 4.5v15A2.5 2.5 0 009.5 22h5A2.5 2.5 0 0017 19.5v-15A2.5 2.5 0 0014.5 2h-5z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v20M7 8h10M7 16h10" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 007 0l4-4a5 5 0 00-7-7l-1 1M14 11a5 5 0 00-7 0l-4 4a5 5 0 007 7l1-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+</svg>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+</head>
+<body>
+
+<!-- ICON SPRITE -->
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 22V12h6v10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-car" viewBox="0 0 24 24"><path d="M5 17h14M7 17v2M17 17v2M5 17l1-6h12l1 6M7 11l1-4h8l1 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-tool" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2 12h20M12 2a15 15 0 010 20M12 2a15 15 0 000 20" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M22 6l-10 7L2 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-game" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6 12h4M8 10v4M15 13h.01M18 11h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M9 21h6M10 18h4M12 2a7 7 0 00-4 12.74V18h8v-3.26A7 7 0 0012 2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-morse" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" fill="currentColor"/><rect x="9" y="10.5" width="8" height="3" rx="1" fill="currentColor"/><circle cx="20" cy="12" r="1.5" fill="currentColor"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 11V7a5 5 0 0110 0v4" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" fill="none" stroke="currentColor" stroke-width="2"/><rect x="14" y="3" width="7" height="7" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3" y="14" width="7" height="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 17v4" stroke="currentColor" stroke-width="2" fill="none"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 007 0l4-4a5 5 0 00-7-7l-1 1M14 11a5 5 0 00-7 0l-4 4a5 5 0 007 7l1-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-translate" viewBox="0 0 24 24"><path d="M5 8h12M5 8l3 10M9 8l3 10M15 8l4 10M15 8l-4 10M3 8h6M15 8h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-cut" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="6" cy="18" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 4L8.12 15.88M14.47 14.48L20 20M8.12 8.12L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-money" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6 10v4M18 10v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-mosque" viewBox="0 0 24 24"><path d="M12 2c-1 2-3 3-3 5v1c0 1 1 2 3 2s3-1 3-2V7c0-2-2-3-3-5zM5 22V12c0-2 3-3 7-3s7 1 7 3v10M3 22h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3zM19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+</svg>
+
+<!-- LOADER -->
+<div id="loader" class="loader">
+  <div class="loader-content">
+    <div class="loader-anim">
+      <div class="ldr-ring"></div>
+      <div class="ldr-ring"></div>
+      <div class="ldr-ring"></div>
+      <div class="ldr-core">
+        <div class="ldr-dot"></div>
+        <div class="ldr-dot"></div>
+        <div class="ldr-dot"></div>
+      </div>
+    </div>
+    <div class="loader-title">ORACLE</div>
+    <div class="loader-sub">GLOBAL INTELLIGENCE · REAL-TIME INSIGHT</div>
+    <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+    <div class="loader-step" id="loader-step">Menyiapkan sistem...</div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-logo" viewBox="0 0 40 40" fill="none">
+      <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#a855f7"/></linearGradient></defs>
+      <ellipse cx="20" cy="20" rx="16" ry="10" stroke="url(#lg)" stroke-width="1.5" fill="none"/>
+      <circle cx="20" cy="20" r="6" fill="url(#lg)" opacity="0.8"/>
+      <circle cx="20" cy="20" r="2.5" fill="#0a0d14"/>
+      <circle cx="20" cy="20" r="10" stroke="url(#lg)" stroke-width="0.8" fill="none" opacity="0.5"/>
+    </svg>
+    <div class="brand-text">
+      <div class="brand-name">ORACLE</div>
+      <div class="brand-ver" id="ver-label">v16</div>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <button class="icon-btn" onclick="openCmd()" title="Command Palette (Ctrl+K)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    </button>
+    <button class="icon-btn" onclick="toggleTheme()" title="Ganti Tema">
+      <svg><use href="#i-moon"/></svg>
+    </button>
+    <button class="icon-btn" onclick="openHistory()" title="Riwayat">
+      <svg><use href="#i-clock"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- TABS -->
+<nav class="tabs" id="tabs">
+  <button class="tab active" data-tab="dashboard"><svg><use href="#i-home"/></svg><span>Beranda</span></button>
+  <button class="tab" data-tab="traffic"><svg><use href="#i-car"/></svg><span>Macet</span></button>
+  <button class="tab" data-tab="ai"><svg><use href="#i-spark"/></svg><span>AI Chat</span></button>
+  <button class="tab" data-tab="tools"><svg><use href="#i-tool"/></svg><span>Tools</span></button>
+  <button class="tab" data-tab="lookup"><svg><use href="#i-globe"/></svg><span>Info</span></button>
+  <button class="tab" data-tab="osint"><svg><use href="#i-search"/></svg><span>OSINT</span></button>
+  <button class="tab" data-tab="social"><svg><use href="#i-search"/></svg><span>Sosmed</span></button>
+  <button class="tab" data-tab="phishing"><svg><use href="#i-shield"/></svg><span>Anti-Phising</span></button>
+  <button class="tab" data-tab="breach"><svg><use href="#i-mail"/></svg><span>Email Bocor</span></button>
+  <button class="tab" data-tab="games"><svg><use href="#i-game"/></svg><span>Game</span></button>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- DASHBOARD -->
+  <section class="panel active" id="panel-dashboard">
+    <div class="hero">
+      <h1 class="hero-title">Hai, selamat datang!</h1>
+      <p class="hero-sub">Cek macet, link bahaya, email bocor, cuaca, dan apapun — gampang, cepet, gratis.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Status Sistem</div>
+      <div class="status-list">
+        <div class="status-row"><span>Server</span><span class="pill ok" id="st-server">...</span></div>
+        <div class="status-row"><span>Data Macet (TomTom)</span><span class="pill ok" id="st-tomtom">...</span></div>
+        <div class="status-row"><span>AI (Gemini)</span><span class="pill ok" id="st-gemini">...</span></div>
+        <div class="status-row"><span>Model AI</span><span id="st-model" style="color:var(--muted)">-</span></div>
+        <div class="status-row"><span>Uptime</span><span id="st-uptime" style="color:var(--muted)">-</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Aksi Cepat</div>
+      <div class="quick-actions">
+        <button class="qa-btn" onclick="showTab('traffic')"><svg><use href="#i-car"/></svg><span>Cek Macet</span></button>
+        <button class="qa-btn" onclick="showTab('phishing')"><svg><use href="#i-shield"/></svg><span>Cek Link</span></button>
+        <button class="qa-btn" onclick="showTab('ai')"><svg><use href="#i-spark"/></svg><span>Chat AI</span></button>
+        <button class="qa-btn" onclick="showTab('lookup')"><svg><use href="#i-sun"/></svg><span>Cek Cuaca</span></button>
+        <button class="qa-btn" onclick="showTab('tools')"><svg><use href="#i-tool"/></svg><span>Tools</span></button>
+        <button class="qa-btn" onclick="showTab('games')"><svg><use href="#i-game"/></svg><span>Main Game</span></button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Tips Hari Ini</div>
+      <div class="daily-tip" id="daily-tip">Loading...</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Riwayat Terakhir</div>
+      <div id="dash-history" class="history-mini">Belum ada riwayat. Coba cek sesuatu dulu.</div>
+    </div>
+  </section>
+
+  <!-- TRAFFIC -->
+  <section class="panel" id="panel-traffic">
+    <div class="hero">
+      <h1 class="hero-title">Cek Macet</h1>
+      <p class="hero-sub">Ketik nama kota, jalan, atau tempat. Bisa di mana aja, seluruh dunia.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Mau cek di mana?</div>
+      <div class="input-row">
+        <input type="text" id="geo-input" placeholder="Contoh: Jakarta, Jl. Sudirman, Tokyo, Monas" autocomplete="off">
+        <button class="btn primary" onclick="doGeocode()">Cari</button>
+      </div>
+      <div class="chip-row">
+        <button class="chip" onclick="quickGeo('Jakarta')">Jakarta</button>
+        <button class="chip" onclick="quickGeo('Jl. Sudirman Jakarta')">Jl. Sudirman</button>
+        <button class="chip" onclick="quickGeo('Tokyo')">Tokyo</button>
+        <button class="chip" onclick="quickGeo('Singapore')">Singapore</button>
+        <button class="chip" onclick="quickGeo('New York')">New York</button>
+      </div>
+      <div id="geo-results" class="geo-results"></div>
+    </div>
+
+    <div class="card" id="traffic-detail" style="display:none">
+      <div class="card-title">Detail Macet</div>
+      <div class="traffic-info" id="traffic-info"></div>
+      <div id="map" class="map"></div>
+      <div id="incidents" class="incidents" style="margin-top:12px"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Hitung Rute</div>
+      <p class="card-sub">Mau tau jarak + waktu tempuh? Isi dari mana ke mana.</p>
+      <div class="input-row"><input type="text" id="route-from" placeholder="Dari: Monas Jakarta"></div>
+      <div class="input-row">
+        <input type="text" id="route-to" placeholder="Ke: Bandung">
+        <button class="btn primary" onclick="doRoute()">Hitung</button>
+      </div>
+      <div id="route-result" class="route-result"></div>
+    </div>
+  </section>
+
+  <!-- AI CHAT -->
+  <section class="panel" id="panel-ai">
+    <div class="hero">
+      <h1 class="hero-title">Chat sama AI</h1>
+      <p class="hero-sub">Tanya apa aja. Bahasa gaul, gampang dimengerti. Bisa juga dikte pake suara.</p>
+    </div>
+
+    <div class="card chat-card">
+      <div class="chat-messages" id="chat-messages">
+        <div class="msg bot">
+          <div class="msg-avatar"><svg><use href="#i-spark"/></svg></div>
+          <div class="msg-bubble">Halo bro! Gw ORACLE AI. Tanya apa aja soal macet, keamanan online, cuaca, atau apapun. Gw siap bantu.</div>
+        </div>
+      </div>
+      <div class="mode-toggle" id="mode-toggle">
+  <button class="mode-btn active" data-mode="fast" onclick="setChatMode('fast')">
+    <svg><use href="#i-fast"/></svg>
+    <span>Cepat</span>
+  </button>
+  <button class="mode-btn" data-mode="web" onclick="setChatMode('web')">
+    <svg><use href="#i-globe"/></svg>
+    <span>Cari Web</span>
+  </button>
+  <button class="mode-btn" data-mode="think" onclick="setChatMode('think')">
+    <svg><use href="#i-brain"/></svg>
+    <span>Berpikir</span>
+  </button>
+</div>
+<div class="chat-inputbar">
+        <button class="icon-btn voice-btn" onclick="toggleVoice()" id="voice-btn" title="Dikte pake suara"><svg><use href="#i-mic"/></svg></button>
+        <textarea id="chat-input" placeholder="Ketik atau dikte pesan lu..." rows="1"></textarea>
+        <button class="btn primary send-btn" onclick="sendChat()" id="chat-send"><svg><use href="#i-send"/></svg></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOOLS -->
+  <section class="panel" id="panel-tools">
+    <div class="hero">
+      <h1 class="hero-title">Tools Bermanfaat</h1>
+      <p class="hero-sub">Kumpulan tools praktis buat sehari-hari. Semua gratis.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><svg class="ct-icon"><use href="#i-morse"/></svg> Morse Translator</div>
+      <p class="card-sub">Ubah huruf jadi kode morse atau sebaliknya. Bisa diputer suaranya!</p>
+      <div class="input-row"><input type="text" id="morse-input" placeholder="Contoh: SOS atau ... --- ..."></div>
+      <div class="chip-row">
+        <button class="chip active" onclick="setMorseMode('text2morse',this)">Huruf → Morse</button>
+        <button class="chip" onclick="setMorseMode('morse2text',this)">Morse → Huruf</button>
+      </div>
+      <div class="input-row">
+        <button class="btn primary" onclick="doMorse()">Ubah</button>
+        <button class="btn" onclick="playMorse()" id="morse-play-btn" style="display:none">Puter Suara</button>
+      </div>
+      <div id="morse-result" class="result-box empty">Hasil muncul di sini...</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><svg class="ct-icon"><use href="#i-lock"/></svg> Password Generator</div>
+      <p class="card-sub">Bikin password kuat dalam 1 detik. Bisa diatur panjangnya.</p>
+      <div class="input-row"><label style="flex:1">Panjang: <span id="pwd-len-label">16</span></label></div>
+      <div class="input-row"><input type="range" id="pwd-len" min="8" max="64" value="16" oninput="document.getElementById('pwd-len-label').textContent=this.value" style="padding:0"></div>
+      <div class="chip-row">
+        <label class="chip-toggle"><input type="checkbox" id="pwd-upper" checked> A-Z</label>
+        <label class="chip-toggle"><input type="checkbox" id="pwd-lower" checked> a-z</label>
+        <label class="chip-toggle"><input type="checkbox" id="pwd-number" checked> 0-9</label>
+        <label class="chip-toggle"><input type="checkbox" id="pwd-symbol" checked> !@#</label>
+      </div>
+      <button class="btn primary" onclick="doPassword()" style="width:100%;margin-top:8px">Generate Password</button>
+      <div id="pwd-result" class="result-box empty">Hasil muncul di sini...</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><svg class="ct-icon"><use href="#i-qr"/></svg> QR Code Generator</div>
+      <p class="card-sub">Bikin QR code dari apapun — link, teks, nomor WA.</p>
+      <div class="input-row">
+        <input type="text" id="qr-input" placeholder="Contoh: https://google.com atau teks apapun">
+        <button class="btn primary" onclick="doQR()">Bikin</button>
+      </div>
+      <div id="qr-result" class="result-box empty">QR-nya muncul di sini...</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><svg class="ct-icon"><use href="#i-link"/></svg> Pemendek Link</div>
+      <p class="card-sub">Link panjang jadi pendek. Enak buat share.</p>
+      <div class="input-row">
+        <input type="text" id="short-input" placeholder="https://example.com/link/panjang/banget">
+        <button class="btn primary" onclick="doShort()">Pendekin</button>
+      </div>
+      <div id="short-result" class="result-box empty">Hasil muncul di sini...</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><svg class="ct-icon"><use href="#i-translate"/></svg> Terjemahan AI</div>
+      <p class="card-sub">Terjemahin teks ke bahasa apapun pake AI.</p>
+      <div class="input-row">
+        <select id="trans-to" style="flex:1">
+          <option value="English">English</option>
+          <option value="Indonesia">Indonesia</option>
+          <option value="Japanese">日本語 (Jepang)</option>
+          <option value="Korean">한국어 (Korea)</option>
+          <option value="Chinese">中文 (Mandarin)</option>
+          <option value="Arabic">العربية (Arab)</option>
+          <option value="Spanish">Español</option>
+          <option value="French">Français</option>
+        </select>
+      </div>
+      <div class="input-row"><textarea id="trans-text" placeholder="Paste teks yang mau diterjemahin..." rows="3"></textarea></div>
+      <button class="btn primary" onclick="doTranslate()" style="width:100%">Terjemahin</button>
+      <div id="trans-result" class="result-box empty">Hasil muncul di sini...</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><svg class="ct-icon"><use href="#i-cut"/></svg> Ringkas Teks AI</div>
+      <p class="card-sub">Teks panjang jadi poin-poin singkat. Enak buat artikel panjang.</p>
+      <div class="input-row"><textarea id="sum-text" placeholder="Paste teks panjang yang mau diringkas..." rows="4"></textarea></div>
+      <button class="btn primary" onclick="doSummarize()" style="width:100%">Ringkas</button>
+      <div id="sum-result" class="result-box empty">Hasil muncul di sini...</div>
+    </div>
+  </section>
+
+  <!-- LOOKUP -->
+  <section class="panel" id="panel-lookup">
+    <div class="hero">
+      <h1 class="hero-title">Info Praktis</h1>
+      <p class="hero-sub">Cuaca, kurs, jadwal sholat. Ketik kota atau nominalnya.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><svg class="ct-icon"><use href="#i-sun"/></svg> Cek Cuaca</div>
+      <p class="card-sub">Ketik nama kota apapun di seluruh dunia.</p>
+      <div class="input-row">
+        <input type="text" id="weather-input" placeholder="Contoh: Bekasi, Tokyo, New York">
+        <button class="btn primary" onclick="doWeather()">Cek</button>
+      </div>
+      <div class="chip-row">
+        <button class="chip" onclick="quickWeather('Jakarta')">Jakarta</button>
+        <button class="chip" onclick="quickWeather('Bekasi')">Bekasi</button>
+        <button class="chip" onclick="quickWeather('Tokyo')">Tokyo</button>
+        <button class="chip" onclick="quickWeather('London')">London</button>
+      </div>
+      <div id="weather-result" class="result-box empty">Hasil muncul di sini...</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><svg class="ct-icon"><use href="#i-money"/></svg> Kurs Mata Uang</div>
+      <p class="card-sub">Cek nilai tukar antar mata uang.</p>
+      <div class="input-row">
+        <input type="number" id="cur-amount" value="100" placeholder="Jumlah" style="flex:1">
+        <select id="cur-from" style="flex:1">
+          <option value="USD">USD $</option>
+          <option value="EUR">EUR €</option>
+          <option value="IDR">IDR Rp</option>
+          <option value="SGD">SGD S$</option>
+          <option value="JPY">JPY ¥</option>
+          <option value="MYR">MYR RM</option>
+          <option value="GBP">GBP £</option>
+        </select>
+      </div>
+      <div class="input-row">
+        <select id="cur-to" style="flex:1">
+          <option value="IDR">IDR Rp</option>
+          <option value="USD">USD $</option>
+          <option value="EUR">EUR €</option>
+          <option value="SGD">SGD S$</option>
+          <option value="JPY">JPY ¥</option>
+          <option value="MYR">MYR RM</option>
+          <option value="GBP">GBP £</option>
+        </select>
+        <button class="btn primary" onclick="doCurrency()">Hitung</button>
+      </div>
+      <div id="cur-result" class="result-box empty">Hasil muncul di sini...</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><svg class="ct-icon"><use href="#i-mosque"/></svg> Jadwal Sholat</div>
+      <p class="card-sub">Ketik kota, langsung muncul jadwal sholat hari ini.</p>
+      <div class="input-row">
+        <input type="text" id="prayer-input" placeholder="Contoh: Jakarta, Bandung, Surabaya">
+        <button class="btn primary" onclick="doPrayer()">Cek</button>
+      </div>
+      <div id="prayer-result" class="result-box empty">Hasil muncul di sini...</div>
+    </div>
+  </section>
+
+  <!-- OSINT -->
+  <section class="panel" id="panel-osint">
+    <div class="hero">
+      <h1 class="hero-title">OSINT Explorer</h1>
+      <p class="hero-sub">Cek domain, IP, DNS records, dan WHOIS. Buat investigasi.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Cek Domain / IP</div>
+      <div class="input-row">
+        <input type="text" id="osint-target" placeholder="contoh: google.com atau 8.8.8.8">
+        <button class="btn primary" onclick="doOsint()">Cek</button>
+      </div>
+      <div id="osint-result" class="result-box empty">Hasil muncul di sini...</div>
+    </div>
+  </section>
+
+  <!-- PHISHING -->
+  <section class="panel" id="panel-phishing">
+    <div class="hero">
+      <h1 class="hero-title">Anti-Phising</h1>
+      <p class="hero-sub">Paste link yang lu curigain. Gw cek bahaya atau enggak.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Cek Link</div>
+      <div class="input-row">
+        <input type="text" id="phish-url" placeholder="contoh: http://g00gle-login.xyz/verify">
+        <button class="btn primary" onclick="doPhishing()">Analisa</button>
+      </div>
+      <div class="chip-row">
+        <button class="chip" onclick="document.getElementById('phish-url').value='http://g00gle-login.xyz/verify';doPhishing()">Contoh Phising</button>
+      </div>
+      <div id="phish-result" class="result-box empty">Hasil muncul di sini...</div>
+    </div>
+  </section>
+
+  <!-- BREACH -->
+  <section class="panel" id="panel-breach">
+    <div class="hero">
+      <h1 class="hero-title">Email Bocor?</h1>
+      <p class="hero-sub">Cek apakah email lu ada di database kebocoran.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Cek Email</div>
+      <div class="input-row">
+        <input type="text" id="breach-email" placeholder="contoh: nama@gmail.com">
+        <button class="btn primary" onclick="doBreach()">Cek</button>
+      </div>
+      <div id="breach-result" class="result-box empty">Hasil muncul di sini...</div>
+    </div>
+  </section>
+
+  <!-- GAMES -->
+  <section class="panel" id="panel-games">
+    <div class="hero">
+      <h1 class="hero-title">Minigame</h1>
+      <p class="hero-sub">Sambil nunggu, main game ringan aja. Skor disimpen di HP lu.</p>
+    </div>
+
+    <div class="card-grid">
+      <div class="card game-card" onclick="playQuiz()">
+        <div class="game-icon"><svg><use href="#i-shield"/></svg></div>
+        <div class="game-title">Kuis Keamanan</div>
+        <div class="game-sub">Tebak mana yang phishing, mana yang legit</div>
+      </div>
+      <div class="card game-card" onclick="playMorseGame()">
+        <div class="game-icon"><svg><use href="#i-morse"/></svg></div>
+        <div class="game-title">Tebak Morse</div>
+        <div class="game-sub">Dengerin beep, tebak hurufnya</div>
+      </div>
+      <div class="card game-card" onclick="playPwdGame()">
+        <div class="game-icon"><svg><use href="#i-lock"/></svg></div>
+        <div class="game-title">Password Challenge</div>
+        <div class="game-sub">Bikin password terkuat dalam 30 detik</div>
+      </div>
+      <div class="card game-card" onclick="playMemoryGame()">
+        <div class="game-icon"><svg><use href="#i-game"/></svg></div>
+        <div class="game-title">Memory Match</div>
+        <div class="game-sub">Cocokin kartu tema cyber</div>
+      </div>
+    </div>
+
+    <div id="game-area"></div>
+  </section>
+
+
+  <!-- SOCIAL MEDIA OSINT -->
+  <section class="panel" id="panel-social">
+    <div class="hero">
+      <h1 class="hero-title">Cari Sosmed</h1>
+      <p class="hero-sub">Ketik username, sistem akan mencari akun di 16 platform sekaligus.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Username</div>
+      <p class="card-sub">Masukkan username tanpa @ — contoh: torvalds, elonmusk, mohammad-alby12.</p>
+      <div class="input-row">
+        <input type="text" id="social-input" placeholder="contoh: torvalds" autocomplete="off">
+        <button class="btn primary" onclick="doSocial()">Cari</button>
+      </div>
+      <div id="social-result" class="result-box empty">Hasil akan muncul di sini...</div>
+    </div>
+  </section>
+</main>
+
+<!-- COMMAND PALETTE -->
+<div id="cmd-modal" class="modal" onclick="if(event.target===this)closeCmd()">
+  <div class="cmd-palette">
+    <input type="text" id="cmd-input" placeholder="Cari fitur... (contoh: macet, cuaca, morse)" autocomplete="off">
+    <div id="cmd-list" class="cmd-list"></div>
+  </div>
+</div>
+
+<!-- HISTORY MODAL -->
+<div id="history-modal" class="modal" onclick="if(event.target===this)closeHistory()">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">Riwayat Pencarian</div>
+      <button class="icon-btn" onclick="closeHistory()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div id="history-list" class="history-list"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast-wrap" class="toast-wrap"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="/js/three-bg.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>
